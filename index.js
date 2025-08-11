@@ -14,6 +14,7 @@ app.use(cors({
     'http://localhost:5173', 
     'https://book-store-app-frontend-six.vercel.app',
     'https://book-store-app-frontend.onrender.com',
+    'https://book-store-app-frontend-uqnr.onrender.com',
     'https://namalabharath.github.io'
   ],
   credentials: true

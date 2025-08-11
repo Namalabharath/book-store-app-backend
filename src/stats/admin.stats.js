@@ -2,11 +2,12 @@ const mongoose = require('mongoose');
 const express = require('express');
 const Order = require('../orders/order.model');
 const Book = require('../books/book.model');
+const { verifyAdminToken } = require('../middleware/verifyAdminToken');
 const router = express.Router();
 
 
-// Function to calculate admin stats
-router.get("/", async (req, res) => {
+// Function to calculate admin stats (protected route)
+router.get("/", verifyAdminToken, async (req, res) => {
     try {
         // 1. Total number of orders
         const totalOrders = await Order.countDocuments();

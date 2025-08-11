@@ -22,11 +22,28 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         //required: true,
     },
-    productIds:[
+    // New structure with products array
+    products: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Book',
-            required: true,
+            bookId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Book',
+                required: true,
+            },
+            quantity: {
+                type: Number,
+                required: true,
+                min: 1,
+                default: 1
+            },
+            price: {
+                type: Number,
+                required: true
+            },
+            title: {
+                type: String,
+                required: true
+            }
         }
     ],
     totalPrice: {

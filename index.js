@@ -10,7 +10,12 @@ require('dotenv').config()
 // middleware
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:5173', 'book-store-app-frontend-six.vercel.app'],
+  origin: [
+    'http://localhost:5173', 
+    'https://book-store-app-frontend-six.vercel.app',
+    'https://book-store-app-frontend.onrender.com',
+    'https://namalabharath.github.io'
+  ],
   credentials: true
 }))
 

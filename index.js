@@ -47,6 +47,3 @@ app.listen(port, () => {
 
 
 
-//namala150704
-//BJruaXS7QWZRh5zb
-//mongodb+srv://namala150704:<db_password>@cluster0.xmdad.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0

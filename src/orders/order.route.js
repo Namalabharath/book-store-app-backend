@@ -1,5 +1,5 @@
 const express = require('express');
-const { createAOrder, getOrderByEmail, getAllOrders } = require('./order.controller');
+const { createAOrder, getOrderByEmail, getAllOrders, updateOrderStatus } = require('./order.controller');
 const { verifyUserToken, verifyAdminToken } = require('../middleware/verifyAdminToken');
 
 const router =  express.Router();
@@ -12,5 +12,8 @@ router.get("/email/:email", verifyUserToken, getOrderByEmail);
 
 // get all orders (admin only)
 router.get("/", verifyAdminToken, getAllOrders);
+
+// update order status (admin only)
+router.patch("/:id/status", verifyAdminToken, updateOrderStatus);
 
 module.exports = router;

@@ -25,20 +25,24 @@ const bookRoutes = require('./src/books/book.route');
 const orderRoutes = require('./src/orders/order.route');
  const userRoutes =  require("./src/users/user.route")
  const adminRoutes = require("./src/stats/admin.stats")
+const paymentRoutes = require('./src/payments/payment.route');
 
 app.use("/api/books", bookRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/auth", userRoutes)
 app.use("/api/admin", adminRoutes)
+app.use("/api/payments", paymentRoutes)
 
 async function main() {
   await mongoose.connect(process.env.DB_URL);
-  app.use("/", (req, res) => {
-    res.send("Book Store Server is running!");
-  });
 }
 
 main().then(() => console.log("Mongodb connect successfully!")).catch(err => console.log(err));
+
+// Default route - put this AFTER all API routes
+app.get("/", (req, res) => {
+  res.send("Book Store Server is running!");
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

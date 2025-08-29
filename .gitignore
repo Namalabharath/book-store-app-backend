@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 
+# Uploads
+public/uploads/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

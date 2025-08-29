@@ -20,7 +20,7 @@ const orderSchema = new mongoose.Schema({
     },
     phone: {
         type: Number,
-        //required: true,
+        required:true,
     },
     // New structure with products array
     products: [
@@ -49,6 +49,39 @@ const orderSchema = new mongoose.Schema({
     totalPrice: {
         type: Number,
         required: true,
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['cod', 'online'],
+        required: true,
+        default: 'cod'
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'paid', 'failed'],
+        required: true,
+        default: function() {
+            return this.paymentMethod === 'cod' ? 'pending' : 'pending';
+        }
+    },
+    razorpayOrderId: {
+        type: String,
+        required: function() {
+            return this.paymentMethod === 'online';
+        }
+    },
+    razorpayPaymentId: {
+        type: String,
+        required: false
+    },
+    razorpaySignature: {
+        type: String,
+        required: false
+    },
+    orderStatus: {
+        type: String,
+        enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+        default: 'pending'
     }
 }, {
     timestamps: true,

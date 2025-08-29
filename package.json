@@ -21,6 +21,7 @@
     "langchain": "^0.3.29",
     "mongoose": "^8.13.0",
     "multer": "^2.0.2",
-    "openai": "^5.8.2"
+    "openai": "^5.8.2",
+    "razorpay": "^2.9.6"
   }
 }

@@ -3,33 +3,28 @@ const Book = require("../books/book.model");
 
 const createAOrder = async (req, res) => {
   try {
-    console.log("=== ORDER CREATION DEBUG ===");
-    console.log("Received order data:", JSON.stringify(req.body, null, 2));
-    
-    const { name, email, address, phone, cartItems } = req.body;
-    
-    console.log("Extracted cartItems:", cartItems);
-    console.log("CartItems type:", typeof cartItems);
-    console.log("CartItems length:", cartItems ? cartItems.length : "undefined");
+    const { name, email, address, phone, cartItems, paymentMethod } = req.body;
     
     // Validate cart items
     if (!cartItems || cartItems.length === 0) {
-      console.log("Cart is empty or undefined:", cartItems);
       return res.status(400).json({ message: "Cart is empty" });
     }
+
+    // Validate payment method
+    const validPaymentMethods = ['cod', 'online'];
+    const selectedPaymentMethod = paymentMethod || 'cod';
     
-    console.log("Processing cart items:", cartItems);
+    if (!validPaymentMethods.includes(selectedPaymentMethod)) {
+      return res.status(400).json({ message: "Invalid payment method" });
+    }
     
     let totalPrice = 0;
     const processedProducts = [];
     
     // Process each cart item and calculate totals
     for (const item of cartItems) {
-      console.log("Processing cart item:", item); // Debug log
-      
       // Verify book exists and get current price
       const book = await Book.findById(item._id);
-      console.log("Found book:", book ? book.title : "NOT FOUND"); // Debug log
       
       if (!book) {
         return res.status(404).json({ message: `Book not found: ${item.title}` });
@@ -47,7 +42,6 @@ const createAOrder = async (req, res) => {
         title: book.title
       };
       
-      console.log("Adding product to order:", productData); // Debug log
       processedProducts.push(productData);
     }
     
@@ -58,18 +52,14 @@ const createAOrder = async (req, res) => {
       address,
       phone,
       products: processedProducts,
-      totalPrice: totalPrice
+      totalPrice: totalPrice,
+      paymentMethod: selectedPaymentMethod,
+      paymentStatus: 'pending', // Always pending initially - will be updated to 'paid' after payment verification
+      orderStatus: 'pending'
     };
 
-    console.log("Final order data to save:", orderData); // Debug log
-
     const newOrder = new Order(orderData);
-    console.log("Order before saving:", newOrder.toObject()); // Debug log
-    
     const savedOrder = await newOrder.save();
-    console.log("Order after saving:", savedOrder.toObject()); // Debug log
-    
-    console.log("Saved order:", savedOrder); // Debug log
     
     // Populate the book details for response
     await savedOrder.populate('products.bookId');
@@ -89,10 +79,9 @@ const getOrderByEmail = async (req, res) => {
   try {
     const {email} = req.params;
     const orders = await Order.find({email}).populate('products.bookId').sort({createdAt: -1});
-    if(!orders || orders.length === 0) {
-      return res.status(404).json({ message: "No orders found for this email" });
-    }
-    res.status(200).json(orders);
+    
+    // Return empty array if no orders found (not an error)
+    res.status(200).json(orders || []);
   } catch (error) {
     console.error("Error fetching orders", error);
     res.status(500).json({ message: "Failed to fetch orders" });
@@ -110,8 +99,45 @@ const getAllOrders = async (req, res) => {
   }
 }
 
+// Update order status (admin only)
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { orderStatus } = req.body;
+
+    // Validate order status
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(orderStatus)) {
+      return res.status(400).json({ 
+        message: "Invalid order status. Must be one of: " + validStatuses.join(', ') 
+      });
+    }
+
+    // Find and update the order
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { orderStatus },
+      { new: true, runValidators: true }
+    ).populate('products.bookId');
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    
+    res.status(200).json({
+      message: "Order status updated successfully",
+      order: updatedOrder
+    });
+
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ message: "Failed to update order status" });
+  }
+}
+
 module.exports = {
   createAOrder,
   getOrderByEmail,
-  getAllOrders
+  getAllOrders,
+  updateOrderStatus
 };

@@ -140,21 +140,20 @@ router.post('/verify', verifyUserToken, async (req, res) => {
             });
         }
 
-        // Verify signature
-        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-        hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
-        const generatedSignature = hmac.digest('hex');
+        const body = razorpay_order_id + '|' + razorpay_payment_id;
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest('hex');
 
-        if (generatedSignature !== razorpay_signature) {
+        if (expectedSignature !== razorpay_signature) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Payment verification failed' 
+                message: 'Payment verification failed (signature mismatch)' 
             });
         }
 
-        // Get payment details from Razorpay
         const payment = await razorpayInstance.payments.fetch(razorpay_payment_id);
-        
         if (payment.status !== 'captured') {
             return res.status(400).json({ 
                 success: false, 
@@ -162,7 +161,6 @@ router.post('/verify', verifyUserToken, async (req, res) => {
             });
         }
 
-        // Create actual order
         const finalOrderData = {
             ...orderData,
             paymentId: razorpay_payment_id,
@@ -172,8 +170,6 @@ router.post('/verify', verifyUserToken, async (req, res) => {
         };
 
         const order = await createActualOrder(finalOrderData);
-
-        // Clean up temporary order
         await TempOrder.deleteOne({ razorpayOrderId: razorpay_order_id });
 
         res.json({
@@ -183,7 +179,6 @@ router.post('/verify', verifyUserToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Payment verification error:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Payment verification failed',
